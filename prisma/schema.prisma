@@ -1,0 +1,329 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model actions {
+  id                BigInt   @id @default(autoincrement())
+  name              String?  @db.VarChar(255)
+  category          String?  @db.VarChar(255)
+  action_key        String?  @db.VarChar(255)
+  application_id_id BigInt?
+  created_at        DateTime @db.DateTime(6)
+  updated_at        DateTime @db.DateTime(6)
+
+  @@index([application_id_id], map: "index_actions_on_application_id_id")
+}
+
+model active_storage_attachments {
+  id                   BigInt               @id @default(autoincrement())
+  name                 String               @db.VarChar(255)
+  record_type          String               @db.VarChar(255)
+  record_id            BigInt
+  blob_id              BigInt
+  created_at           DateTime             @db.DateTime(6)
+  active_storage_blobs active_storage_blobs @relation(fields: [blob_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_c3b3935057")
+
+  @@unique([record_type, record_id, name, blob_id], map: "index_active_storage_attachments_uniqueness")
+  @@index([blob_id], map: "index_active_storage_attachments_on_blob_id")
+}
+
+model active_storage_blobs {
+  id                             BigInt                           @id @default(autoincrement())
+  key                            String                           @unique(map: "index_active_storage_blobs_on_key") @db.VarChar(255)
+  filename                       String                           @db.VarChar(255)
+  content_type                   String?                          @db.VarChar(255)
+  metadata                       String?                          @db.Text
+  service_name                   String                           @db.VarChar(255)
+  byte_size                      BigInt
+  checksum                       String?                          @db.VarChar(255)
+  created_at                     DateTime                         @db.DateTime(6)
+  active_storage_attachments     active_storage_attachments[]
+  active_storage_variant_records active_storage_variant_records[]
+}
+
+model active_storage_variant_records {
+  id                   BigInt               @id @default(autoincrement())
+  blob_id              BigInt
+  variation_digest     String               @db.VarChar(255)
+  active_storage_blobs active_storage_blobs @relation(fields: [blob_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_993965df05")
+
+  @@unique([blob_id, variation_digest], map: "index_active_storage_variant_records_uniqueness")
+}
+
+model ar_internal_metadata {
+  key        String   @id @db.VarChar(255)
+  value      String?  @db.VarChar(255)
+  created_at DateTime @db.DateTime(6)
+  updated_at DateTime @db.DateTime(6)
+}
+
+model calibration_configs {
+  id                   BigInt         @id @default(autoincrement())
+  sensor_id            BigInt
+  sensor_interval      Int?
+  calibration_interval Int?
+  sampling_interval    Int?
+  sampling_duration    Int?
+  created_at           DateTime       @db.DateTime(6)
+  updated_at           DateTime       @db.DateTime(6)
+  sensors              sensors        @relation(fields: [sensor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_e9dcd0bb8b")
+  calibrations         calibrations[]
+
+  @@index([sensor_id], map: "index_calibration_configs_on_sensor_id")
+}
+
+model calibrations {
+  id                    BigInt              @id @default(autoincrement())
+  calibration_config_id BigInt
+  status                String?             @db.VarChar(255)
+  created_at            DateTime            @db.DateTime(6)
+  updated_at            DateTime            @db.DateTime(6)
+  calibration_configs   calibration_configs @relation(fields: [calibration_config_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_7ccd5fac9e")
+
+  @@index([calibration_config_id], map: "index_calibrations_on_calibration_config_id")
+}
+
+model client_notifications {
+  id                BigInt    @id @default(autoincrement())
+  sensor_id         BigInt?
+  last_send         DateTime? @db.DateTime(6)
+  notification_type Int?
+  payload           String?   @db.Text
+  created_at        DateTime  @db.DateTime(6)
+  updated_at        DateTime  @db.DateTime(6)
+
+  @@index([sensor_id], map: "index_client_notifications_on_sensor_id")
+}
+
+model client_reports {
+  id             BigInt    @id @default(autoincrement())
+  module_app_id  BigInt?
+  station_id     BigInt?
+  user_id        BigInt?
+  from_date      DateTime? @db.DateTime(6)
+  to_date        DateTime? @db.DateTime(6)
+  filename       String?   @db.VarChar(255)
+  total_data     Int?
+  processed_data Int?
+  payload_data   String?   @db.LongText
+  created_at     DateTime  @db.DateTime(6)
+  updated_at     DateTime  @db.DateTime(6)
+  requested_at   DateTime  @default(now()) @db.Timestamp(0)
+
+  @@index([module_app_id], map: "index_client_reports_on_module_app_id")
+  @@index([station_id], map: "index_client_reports_on_station_id")
+  @@index([user_id], map: "index_client_reports_on_user_id")
+}
+
+model client_uploads {
+  id            BigInt   @id @default(autoincrement())
+  module_app_id BigInt?
+  station_id    BigInt?
+  user_id       BigInt?
+  filename      String?  @db.VarChar(255)
+  created_at    DateTime @db.DateTime(6)
+  updated_at    DateTime @db.DateTime(6)
+
+  @@index([module_app_id], map: "index_client_uploads_on_module_app_id")
+  @@index([station_id], map: "index_client_uploads_on_station_id")
+  @@index([user_id], map: "index_client_uploads_on_user_id")
+}
+
+model documents {
+  id                BigInt   @id @default(autoincrement())
+  document_data     String?  @db.Text
+  documentable_type String   @db.VarChar(255)
+  documentable_id   BigInt
+  created_at        DateTime @db.DateTime(6)
+  updated_at        DateTime @db.DateTime(6)
+
+  @@index([documentable_type, documentable_id], map: "index_documents_on_documentable")
+}
+
+model images {
+  id             BigInt   @id @default(autoincrement())
+  image_data     String?  @db.Text
+  imageable_type String   @db.VarChar(255)
+  imageable_id   BigInt
+  created_at     DateTime @db.DateTime(6)
+  updated_at     DateTime @db.DateTime(6)
+
+  @@index([imageable_type, imageable_id], map: "index_images_on_imageable")
+}
+
+model module_app_users {
+  id            BigInt   @id @default(autoincrement())
+  module_app_id BigInt?
+  user_id       BigInt?
+  created_at    DateTime @db.DateTime(6)
+  updated_at    DateTime @db.DateTime(6)
+
+  @@index([module_app_id], map: "index_module_app_users_on_module_app_id")
+  @@index([user_id], map: "index_module_app_users_on_user_id")
+}
+
+model module_apps {
+  id         BigInt    @id @default(autoincrement())
+  name       String?   @db.VarChar(255)
+  status     String?   @db.VarChar(255)
+  category   String?   @db.VarChar(255)
+  created_at DateTime  @db.DateTime(6)
+  updated_at DateTime  @db.DateTime(6)
+  sensors    sensors[]
+}
+
+model role_actions {
+  id         BigInt   @id @default(autoincrement())
+  role_id    BigInt?
+  action_id  BigInt?
+  name       String?  @db.VarChar(255)
+  created_at DateTime @db.DateTime(6)
+  updated_at DateTime @db.DateTime(6)
+
+  @@index([action_id], map: "index_role_actions_on_action_id")
+  @@index([role_id], map: "index_role_actions_on_role_id")
+}
+
+model roles {
+  id         BigInt   @id @default(autoincrement())
+  name       String?  @db.VarChar(255)
+  created_at DateTime @db.DateTime(6)
+  updated_at DateTime @db.DateTime(6)
+}
+
+model schema_migrations {
+  version String @id @db.VarChar(255)
+}
+
+model sensor_types {
+  id         BigInt    @id @default(autoincrement())
+  category   String?   @db.VarChar(255)
+  name       String?   @db.VarChar(255)
+  created_at DateTime  @db.DateTime(6)
+  updated_at DateTime  @db.DateTime(6)
+  sensors    sensors[]
+}
+
+model sensors {
+  id                  BigInt                @id @default(autoincrement())
+  label               String?               @db.VarChar(255)
+  name                String?               @db.VarChar(255)
+  module_app_id       BigInt?
+  created_at          DateTime              @db.DateTime(6)
+  updated_at          DateTime              @db.DateTime(6)
+  sensor_type_id      BigInt?
+  station_id          BigInt?
+  unit                String?               @db.VarChar(255)
+  status              String                @default("active") @db.VarChar(255)
+  factor              Decimal?              @default(1.00) @db.Decimal(8, 2)
+  calibration_configs calibration_configs[]
+  sensor_types        sensor_types?         @relation(fields: [sensor_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_c25b245ee7")
+  module_apps         module_apps?          @relation(fields: [module_app_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_f687e32b3e")
+  ticks               ticks[]
+
+  @@index([module_app_id], map: "index_sensors_on_module_app_id")
+  @@index([sensor_type_id], map: "index_sensors_on_sensor_type_id")
+  @@index([station_id], map: "index_sensors_on_station_id")
+}
+
+model stations {
+  id                  BigInt    @id @default(autoincrement())
+  name                String?   @db.VarChar(255)
+  status              String?   @db.VarChar(255)
+  created_at          DateTime  @db.DateTime(6)
+  updated_at          DateTime  @db.DateTime(6)
+  lat                 Decimal?  @db.Decimal(10, 6)
+  lng                 Decimal?  @db.Decimal(10, 6)
+  group               Int?
+  key                 String?   @db.VarChar(255)
+  door                String?   @default("closed") @db.VarChar(255)
+  pump                String?   @default("ok") @db.VarChar(255)
+  flushing            String?   @default("ok") @db.VarChar(255)
+  valve               String?   @default("ok") @db.VarChar(255)
+  detection_level_bak String?   @default("ok") @db.VarChar(255)
+  room_temp           String?   @default("normal") @db.VarChar(255)
+  sensor_uv           String?   @default("ok") @db.VarChar(255)
+  sensor_aquas        String?   @default("ok") @db.VarChar(255)
+  sensor_bme          String?   @default("ok") @db.VarChar(255)
+  sensor_tma          String?   @default("ok") @db.VarChar(255)
+  sensor_kwh_mter_ac  String?   @default("ok") @db.VarChar(255)
+  sensor_kwh_mter_dc  String?   @default("ok") @db.VarChar(255)
+  sd_card             String?   @default("ok") @db.VarChar(255)
+  datacollector       String?   @default("ok") @db.VarChar(255)
+  over_teg_ac         String?   @default("ok") @db.VarChar(255)
+  over_teg_dc         String?   @default("ok") @db.VarChar(255)
+  under_teg_ac        String?   @default("ok") @db.VarChar(255)
+  under_teg_dc        String?   @default("ok") @db.VarChar(255)
+  overload_ac         String?   @default("ok") @db.VarChar(255)
+  overload_dc         String?   @default("ok") @db.VarChar(255)
+  telegram_user_ids   String?   @db.VarChar(255)
+  menlhk_nama_stasiun String?   @db.VarChar(255)
+  menlhk_api_key      String?   @db.VarChar(255)
+  menlhk_api_secret   String?   @db.VarChar(255)
+  menlhk_id_stasiun   String?   @db.VarChar(255)
+  menlhk_url          String?   @db.VarChar(255)
+  company_logo_url    String?   @db.VarChar(255)
+  company_name        String?   @db.VarChar(255)
+  company_tagline     String?   @db.VarChar(255)
+  company_address     String?   @db.VarChar(255)
+  company_contact     String?   @db.VarChar(255)
+  last_tick           DateTime? @db.DateTime(6)
+  is_datalogger_ok    Boolean?  @default(false)
+}
+
+model stats {
+  id              BigInt   @id @default(autoincrement())
+  name            String?  @db.VarChar(255)
+  objectable_type String   @db.VarChar(255)
+  objectable_id   BigInt
+  value           Decimal? @db.Decimal(10, 0)
+  query           String?  @db.Text
+  created_at      DateTime @db.DateTime(6)
+  updated_at      DateTime @db.DateTime(6)
+
+  @@index([objectable_type, objectable_id], map: "index_stats_on_objectable")
+}
+
+model ticks {
+  id            BigInt   @id @default(autoincrement())
+  value         Decimal? @db.Decimal(8, 2)
+  sensor_id     BigInt
+  created_at    DateTime @db.DateTime(6)
+  updated_at    DateTime @db.DateTime(6)
+  ispu          Decimal? @db.Decimal(10, 0)
+  ispu_goodness Int?
+  is_synced     Boolean? @default(false)
+  raw_value     Decimal? @default(0.00) @db.Decimal(8, 2)
+  sensors       sensors  @relation(fields: [sensor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_rails_edac77b6ce")
+
+  @@index([created_at], map: "idx_ticks_created_at")
+  @@index([sensor_id], map: "index_ticks_on_sensor_id")
+}
+
+model users {
+  id                     BigInt    @id @default(autoincrement())
+  email                  String    @unique(map: "index_users_on_email") @default("") @db.VarChar(255)
+  encrypted_password     String    @default("") @db.VarChar(255)
+  name                   String    @default("") @db.VarChar(255)
+  status                 String    @default("") @db.VarChar(255)
+  phone_number           String?   @db.VarChar(255)
+  reset_password_token   String?   @unique(map: "index_users_on_reset_password_token") @db.VarChar(255)
+  reset_password_sent_at DateTime? @db.DateTime(6)
+  remember_created_at    DateTime? @db.DateTime(6)
+  role_id                BigInt?
+  station_id             BigInt?
+  created_at             DateTime  @db.DateTime(6)
+  updated_at             DateTime  @db.DateTime(6)
+  timezone               String?   @default("Jakarta") @db.VarChar(255)
+  is_all_access          Boolean?
+  address                String?   @db.VarChar(255)
+  avatar_data            String?   @db.Text
+
+  @@index([role_id], map: "index_users_on_role_id")
+  @@index([station_id], map: "index_users_on_station_id")
+}
